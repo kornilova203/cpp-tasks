@@ -19,7 +19,7 @@ struct Elem {
 };
 
 
-class PrioritizedQueue {
+class PriorityQueue {
 public:
     void insert(int newVal, int newPrior);
     void print() const;
