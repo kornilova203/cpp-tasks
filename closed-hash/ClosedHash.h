@@ -55,9 +55,8 @@ public:
         int isEmpty = 1;
         for (int i = 0; i < B; i++) {  // for all elements in hash table
             if (hashTable[i] != 0 && hashTable[i] != EMPTY_ELEM) {  // if name is not empty
-                cout << i << " - ";
                 isEmpty = 0;
-                cout << *hashTable[i] << " (hash = " << hashCode_(*hashTable[i]) << ")" << endl;
+                cout << *hashTable[i] << endl;
             }
         }
         if (isEmpty == 1)
@@ -133,24 +132,21 @@ private:
     }
 
     int countKey_(const string val) const {
-        int key = 0;
-        for(const char& c : val) {
-            key += c;
-        }
-        return key;
+
     }
 
     int hashCode_(const T val) const {
-        return countKey_(val) % B;
+        hash<T> hashCode;
+        return (int) (hashCode(val) % B);
     }
 
-    void insertToPos_(int hash, int val) {
-        hashTable[hash] = new int(val);
+    void insertToPos_(int hash, const T val) {
+        hashTable[hash] = new T(val);
     }
 
-    void insertToPos_(int hash, const string val) {
-        hashTable[hash] = new string(val);
-    }
+//    void insertToPos_(int hash, const string val) {
+//        hashTable[hash] = new string(val);
+//    }
 
     int findPosForNew_(int hash, const T val) {
         int firstUsedAndEmpty = -1;  // element which was used but now empty
@@ -189,7 +185,7 @@ private:
         return val1.compare(val2) == 0;
     }
 
-    int isEqual_(int val1, int val2) const {
+    int isEqual_(const T val1, const T val2) const {
         return val1 == val2;
     }
 };
