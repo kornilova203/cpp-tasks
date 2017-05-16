@@ -51,19 +51,6 @@ public:
         return 0;
     }
 
-    void print() const {
-        int isEmpty = 1;
-        for (int i = 0; i < B; i++) {  // for all elements in hash table
-            if (hashTable[i] != 0 && hashTable[i] != EMPTY_ELEM) {  // if name is not empty
-                isEmpty = 0;
-                cout << *hashTable[i] << endl;
-            }
-        }
-        if (isEmpty == 1)
-            cout << "dict is empty";
-        cout << endl;
-    }
-
     /**
      * Clear hash-table
      */
@@ -84,6 +71,20 @@ public:
             }
         }
         return size;
+    }
+
+    friend ostream& operator<<(ostream& stream, ClosedHash closedHash) {
+        int isEmpty = 1;
+        for (int i = 0; i < B; i++) {  // for all elements in hash table
+            if (closedHash.hashTable[i] != 0 && closedHash.hashTable[i] != closedHash.EMPTY_ELEM) {  // if name is not empty
+                isEmpty = 0;
+                stream << *(closedHash.hashTable[i]) << endl;
+            }
+        }
+        if (isEmpty == 1)
+            stream << "dict is empty";
+        stream << endl;
+        return stream;
     }
 
 private:
