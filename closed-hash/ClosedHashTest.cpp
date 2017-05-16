@@ -10,13 +10,15 @@
 
 using namespace std;
 
-struct S {
+class S {
+public:
     S(const S &s) {
         strcpy(name, s.name);
+        size = s.size;
     }
 
     S() {
-        strcpy(name, "hello");
+        name[0] = 0;
     }
 
     S(const char *name_, int n) {
@@ -24,12 +26,21 @@ struct S {
         size = n;
     }
 
-    char *name = new char[15];
-    int size = 0;
-
     int operator==(const S &s) const {
         return strcmp(name, s.name) == 0;
     }
+
+    const char *getName() const {
+        return name;
+    }
+
+    int getSize() const {
+        return size;
+    }
+
+private:
+    char name[15];
+    int size = 0;
 };
 
 namespace std {
@@ -38,8 +49,10 @@ namespace std {
     public:
         size_t operator()(const S &s) const {
             size_t key = 0;
-            for (int i = 0; i < s.size; i++) {
-                key += s.name[i];
+            int size = s.getSize();
+            const char *name = s.getName();
+            for (int i = 0; i < size; i++) {
+                key += name[i];
             }
             return key;
         }
@@ -123,7 +136,19 @@ SCENARIO("Using hash-table") {
                 REQUIRE(closedHash.size() == 5);
             }
         }
+        WHEN("Getting entry from hash-table") {
+            S sFromTable = closedHash.get(s);
+            THEN("It is equal to original structure") {
+                REQUIRE(sFromTable == s);
+            }
+        }
 
+    }
+
+    GIVEN("Hash-table with strings") {
+        ClosedHash<string> closedHash = ClosedHash<string>();
+        closedHash.insert("Lucinda");
+        REQUIRE(closedHash.size() == 1);
     }
 }
 

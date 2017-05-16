@@ -40,24 +40,22 @@
 //      paste \0 to value
 
 #include "ClosedHash.h"
-#include <stdexcept>
-#include <iostream>
 #include <string.h>
+#include <fstream>
+
 
 using namespace std;
 
 
 void readList(ClosedHash<string> &dict, const char *fileName) {
-    FILE *f = fopen(fileName, "r");
-    if (f) {  // if file was open
-        char line[15];
-        while (fgets(line, 15, f) != NULL) {  // read all lines
-            size_t len = strlen(line) - 1;
-            line[len] = '\0';  // delete \n
-            dict.insert(line);
+    fstream input(fileName);
+    if (input) {  // if file was open
+        string name;
+        while (getline(input, name)) {  // read all lines
+            dict.insert(name);
         }
     } else {
-        throw runtime_error("Could not open file");
+        throw runtime_error("Could not open file with students names");
     }
 }
 
@@ -73,9 +71,9 @@ void move(ClosedHash<string> &to, ClosedHash<string> &from, char *name) {
 
 void printBoth(ClosedHash<string> &good, ClosedHash<string> &bad) {
     cout << "Good:" << endl;
-    good.print();
+    cout << good;
     cout << "Bad:" << endl;
-    bad.print();
+    cout << bad;
     cout << endl;
 }
 

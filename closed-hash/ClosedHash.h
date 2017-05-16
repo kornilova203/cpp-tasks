@@ -6,9 +6,9 @@
 #define DICTIONARY_CLOSEDHASH_H
 
 #include <iostream>
-#include <string.h>
+//#include <string>
 
-using namespace std;
+//using namespace std;
 
 
 template<class T>
@@ -73,17 +73,25 @@ public:
         return size;
     }
 
-    friend ostream& operator<<(ostream& stream, ClosedHash closedHash) {
+    friend std::ostream& operator<<(std::ostream& stream, ClosedHash closedHash) {
         int isEmpty = 1;
         for (int i = 0; i < B; i++) {  // for all elements in hash table
             if (closedHash.hashTable[i] != 0 && closedHash.hashTable[i] != closedHash.EMPTY_ELEM) {  // if name is not empty
                 isEmpty = 0;
-                stream << *(closedHash.hashTable[i]) << endl;
+                stream << *(closedHash.hashTable[i]) << std::endl;
             }
         }
         if (isEmpty == 1)
             stream << "dict is empty";
         return stream;
+    }
+
+    T& get(T key) {
+        int pos = find_(key);
+        if (pos == -1) {
+            throw std::runtime_error("There is no such value in table");
+        }
+        return *hashTable[pos];
     }
 
 private:
@@ -122,21 +130,8 @@ private:
         return -1;
     }
 
-    int countKey_(int val) const {
-        int hash = 0;
-        while (val > 0) {
-            hash += val % 10;
-            val /= 10;
-        }
-        return hash;
-    }
-
-    int countKey_(const string val) const {
-
-    }
-
     int hashCode_(const T val) const {
-        hash<T> hashCode;
+        std::hash<T> hashCode;
         return (int) (hashCode(val) % B);
     }
 
@@ -179,10 +174,6 @@ private:
             return -1;
         }
         return firstUsedAndEmpty;
-    }
-
-    int isEqual_(const string val1, const string val2) const {
-        return val1.compare(val2) == 0;
     }
 
     int isEqual_(const T val1, const T val2) const {
