@@ -133,6 +133,7 @@ void processCommand(ClosedHash<string> &good, ClosedHash<string> &bad, char *com
     cout << "command was not found" << endl;
 }
 
+
 int main() {
     ClosedHash<string> good = ClosedHash<string>();
     ClosedHash<string> bad = ClosedHash<string>();

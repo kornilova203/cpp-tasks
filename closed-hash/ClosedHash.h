@@ -83,7 +83,6 @@ public:
         }
         if (isEmpty == 1)
             stream << "dict is empty";
-        stream << endl;
         return stream;
     }
 
