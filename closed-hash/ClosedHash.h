@@ -26,7 +26,6 @@ public:
         if (pos != -1) {  // if place was found
             insertToPos_(pos, val);
         }
-
     }
 
     /**
@@ -86,12 +85,12 @@ public:
         return stream;
     }
 
-    T& get(T key) {
+    T* get(const T key) const {
         int pos = find_(key);
         if (pos == -1) {
             throw std::runtime_error("There is no such value in table");
         }
-        return *hashTable[pos];
+        return hashTable[pos];
     }
 
 private:

@@ -10,9 +10,9 @@
 
 using namespace std;
 
-struct Student {
-    string name;
-    Entry * entry;
+class Student {
+public:
+    Entry *entry = 0;
 
     Student() {
         name = "";
@@ -26,10 +26,17 @@ struct Student {
         return name == s.name;
     }
 
-    friend ostream& operator<<(ostream& stream, Student s) {
+    friend ostream &operator<<(ostream &stream, Student s) {
         stream << s.name;
         return stream;
     }
+
+    const string &getName() const {
+        return name;
+    }
+
+private:
+    string name;
 };
 
 namespace std {
@@ -38,7 +45,7 @@ namespace std {
     public:
         size_t operator()(const Student &s) const {
             size_t key = 0;
-            for (const char &c : s.name) {
+            for (const char &c : s.getName()) {
                 key += c;
             }
             return key;

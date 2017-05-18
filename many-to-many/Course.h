@@ -10,9 +10,9 @@
 
 using namespace std;
 
-struct Course {
-    int id;
-    Entry * entry;
+class Course {
+public:
+    Entry *entry = 0;
 
     Course() {
         id = -1;
@@ -26,10 +26,18 @@ struct Course {
         return id == c.id;
     }
 
-    friend ostream& operator<<(ostream& stream, Course s) {
+    friend ostream &operator<<(ostream &stream, Course s) {
         stream << s.id;
         return stream;
     }
+
+    int getId() const {
+        return id;
+    }
+
+private:
+    int id;
+
 };
 
 namespace std {
@@ -38,7 +46,7 @@ namespace std {
     public:
         size_t operator()(const Course &c) const {
             size_t key = 0;
-            int tempId = c.id;
+            int tempId = c.getId();
             while (tempId > 0) {
                 key += tempId % 10;
                 tempId /= 10;
