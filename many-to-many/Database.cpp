@@ -6,7 +6,6 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
-#include <assert.h>
 #include "Database.h"
 
 /**
@@ -191,6 +190,9 @@ string Database::listCourses(string studentName) const {
         result += to_string(getCourse_(entry)->getId()) + "\n";
         entry = entry->getNextStudentEntry();
     }
+    if (result == "") {
+        return "Student does not take any courses";
+    }
     return result;
 }
 
@@ -229,6 +231,9 @@ string Database::listStudents_(const Course *course) const {
         result += getStudent_(entry)->getName() + "\n";
         entry = entry->getNextCourseEntry();
     }
+    if (result == "") {
+        return "Course does not have any students";
+    }
     return result;
 }
 
@@ -255,7 +260,7 @@ Student *Database::getStudent_(const Entry *entry) const {
  * @param course
  * @param student
  */
-void Database::del(int courseId, const char *studentName) {
+void Database::remove(int courseId, const char *studentName) {
     Course *course = getCourse_(courseId);
     Student *student = getStudent_(studentName);
     Entry *entry = findCommonEntry_(course, student);
@@ -328,4 +333,38 @@ void Database::excludeEntry_(const Entry *entry, Course *course) {
             prevEntry->setNextCourse(entry->getNextCourse());
         }
     }
+}
+
+/**
+ * Remove student from all courses
+ * @param student
+ */
+void Database::remove(const char *studentName) {
+    Student *student = getStudent_(studentName);
+    Entry *entry = student->entry;
+    while (entry != 0) { // for all entries of this student
+        Course *course = getCourse_(entry);
+        excludeEntry_(entry, course);
+        Entry *delEntry = entry;
+        entry = entry->getNextStudentEntry();
+        delete delEntry;
+    }
+    student->entry = 0;
+}
+
+/**
+ * Remove course from all students
+ * @param courseId
+ */
+void Database::remove(int courseId) {
+    Course *course = getCourse_(courseId);
+    Entry *entry = course->entry;
+    while (entry != 0) { // for all entries of this course
+        Student *student = getStudent_(entry);
+        excludeEntry_(entry, student);
+        Entry *delEntry = entry;
+        entry = entry->getNextCourseEntry();
+        delete delEntry;
+    }
+    course->entry = 0;
 }

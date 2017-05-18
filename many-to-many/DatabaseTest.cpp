@@ -1,36 +1,3 @@
-// Multiple to multiple
-
-// students <-> courses
-
-// 1. get list of students going to particular course
-// 2. get courses of particular student
-
-// actions:
-// student chooses course
-// course stops
-// student leaves course
-
-// sets of students and courses do not change
-
-// matrix:
-// OX -students
-// OY - courses
-
-// cnext - course
-// snext - student
-
-// void *
-
-// student: string + pointer to hashCode() = sum of characters
-// course: int code hashCode = sum of numbers
-
-// add(c, s)
-// delete(c, s)
-// delete(s)
-// delete(c)
-// listCourses(s)
-// printStudents(c)
-
 #include <iostream>
 #include "Database.h"
 
@@ -132,7 +99,7 @@ SCENARIO("Using db") {
         REQUIRE(db.listCourses("Ekaterina") == "12\n1\n");
 
         WHEN("Remove student from his first course") {
-            db.del(1, "Roman");
+            db.remove(1, "Roman");
             THEN("Entry is removed from student and from course") {
                 REQUIRE(db.listCourses("Roman") == "11\n12\n");
                 REQUIRE(db.listStudents(1) == "Petr\nEkaterina\n");
@@ -140,7 +107,7 @@ SCENARIO("Using db") {
         }
 
         WHEN("Remove student from his second course") {
-            db.del(11, "Roman");
+            db.remove(11, "Roman");
             THEN("Entry is removed from student and from course") {
                 REQUIRE(
                         db.listCourses("Roman") == "1\n12\n"
@@ -150,10 +117,42 @@ SCENARIO("Using db") {
         }
 
         WHEN("Remove student from his third course") {
-            db.del(12, "Roman");
+            db.remove(12, "Roman");
             THEN("Entry is removed from student and from course") {
                 REQUIRE(db.listCourses("Roman") == "1\n11\n");
                 REQUIRE(db.listStudents(12) == "Ekaterina\n");
+            }
+        }
+
+        WHEN("Remove all courses from student") {
+            db.remove(12, "Roman");
+            db.remove(11, "Roman");
+            db.remove(1, "Roman");
+            THEN("Student is removed from all courses") {
+                REQUIRE(db.listCourses("Roman") == "Student does not take any courses");
+                REQUIRE(db.listStudents(1) == "Petr\nEkaterina\n");
+                REQUIRE(db.listStudents(11) == "Petr\n");
+                REQUIRE(db.listStudents(12) == "Ekaterina\n");
+            }
+        }
+
+        WHEN("Remove student from list") {
+            db.remove("Roman");
+            THEN("Student is removed from all courses") {
+                REQUIRE(db.listCourses("Roman") == "Student does not take any courses");
+                REQUIRE(db.listStudents(1) == "Petr\nEkaterina\n");
+                REQUIRE(db.listStudents(11) == "Petr\n");
+                REQUIRE(db.listStudents(12) == "Ekaterina\n");
+            }
+        }
+
+        WHEN("Remove course from list") {
+            db.remove(11);
+            THEN("Course is removed from all students") {
+                REQUIRE(db.listStudents(11) == "Course does not have any students");
+                REQUIRE(db.listCourses("Roman") == "1\n12\n");
+                REQUIRE(db.listCourses("Petr") == "1\n");
+                REQUIRE(db.listCourses("Ekaterina") == "12\n1\n");
             }
         }
     }

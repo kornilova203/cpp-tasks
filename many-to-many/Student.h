@@ -39,6 +39,7 @@ private:
     string name;
 };
 
+// hash code is for adding student to hash-table
 namespace std {
     template<>
     class hash<Student> {

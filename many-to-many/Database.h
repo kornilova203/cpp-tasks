@@ -10,6 +10,9 @@
 #include "Student.h"
 #include "Course.h"
 
+/**
+ * Many-to-many datamodel
+ */
 class Database {
 public:
     Database(char *studFileName, char *coursesFileName);
@@ -24,11 +27,11 @@ public:
 
     void add(int courseId, string studentName);
 
-    void del(int course, const char *student);
+    void remove(int courseId, const char *studentName);
 
-    void del(const char *student);
+    void remove(const char *studentName);
 
-    void del(int course);
+    void remove(int courseId);
 
 private:
     ClosedHash<Course> courses = ClosedHash<Course>();

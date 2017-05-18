@@ -40,6 +40,7 @@ private:
 
 };
 
+// hash code is for adding course to hash-table
 namespace std {
     template<>
     class hash<Course> {
