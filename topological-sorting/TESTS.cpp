@@ -30,19 +30,19 @@
 
 #include "TopologicalSorting.h"
 
-std::string path = "/home/lk/Dropbox/ITMO/programming/cpp-tasks/topological-sorting/";
+std::string path = "/home/lk/Dropbox/ITMO/programming/cpp-tasks/topological-sorting/test-data/";
 
 SCENARIO("Using TopologicalSorting") {
     GIVEN("Files with correct input") {
-        REQUIRE(TopologicalSorting(path + "test1.txt").getSortedOrder() == "3 5 7 9");
+        REQUIRE(TopologicalSorting(path + "test1.txt").getSortedOrder() == "3 7 9 5");
 
-        REQUIRE(TopologicalSorting(path + "test2.txt").getSortedOrder() == "3 2 1 5");
+        REQUIRE(TopologicalSorting(path + "test2.txt").getSortedOrder() == "1 2 3 5");
 
         REQUIRE(TopologicalSorting(path + "test3.txt").getSortedOrder() == "1 2 3 4 5 6");
 
-        REQUIRE(TopologicalSorting(path + "test4.txt").getSortedOrder() == "4 1 8 2 3 5 6 7 9");
+        REQUIRE(TopologicalSorting(path + "test4.txt").getSortedOrder() == "5 6 1 3 2 7 4 9 8");
 
-        REQUIRE(TopologicalSorting(path + "test5.txt").getSortedOrder() == "1 7 2 4 9 5 6 10");
+        REQUIRE(TopologicalSorting(path + "test5.txt").getSortedOrder() == "5 4 2 9 1 10 7 6");
 
         REQUIRE(TopologicalSorting(path + "test6.txt").getSortedOrder() == "1 2 3 4 5 6 7 8 9");
 

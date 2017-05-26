@@ -21,13 +21,11 @@ private:
 
     Elem *lastSortedElem = 0;
 
-    Elem *findOrCreateElem_(int val);
+    Elem *findElem_(int val);
 
     void addEdge_(int smallerVal, int biggerVal);
 
     Elem *createElem_(int val);
-
-    Elem *appendToList(int i, Elem *pElem);
 
     void sort_();
 
@@ -66,8 +64,14 @@ TopologicalSorting::TopologicalSorting(std::string fileName) {
 }
 
 void TopologicalSorting::addEdge_(int smallerVal, int biggerVal) {
-    Elem *smaller = findOrCreateElem_(smallerVal);
-    Elem *bigger = findOrCreateElem_(biggerVal);
+    Elem *smaller = findElem_(smallerVal);
+    if (!smaller) {
+        smaller = createElem_(smallerVal);
+    }
+    Elem *bigger = findElem_(biggerVal);
+    if (!bigger) {
+        bigger = createElem_(biggerVal);
+    }
     bigger->incNumOfSmallerElems();
     smaller->addBiggerElem(bigger);
 }
@@ -78,28 +82,25 @@ void TopologicalSorting::addEdge_(int smallerVal, int biggerVal) {
  * @param val value of elem
  * @return pointer to elem
  */
-Elem *TopologicalSorting::findOrCreateElem_(int val) {
+Elem *TopologicalSorting::findElem_(int val) {
     if (firstUnsortedElem == 0) { // if list of elems is empty
-        return createElem_(val);
+        return 0;
     }
     Elem *elem = firstUnsortedElem;
-    Elem *prev = 0;
     while (elem != 0) { // for all existing elems
         if (elem->getVal() == val) { // elem was found in list
             return elem;
         }
-        prev = elem;
         elem = elem->next;
     }
-    return appendToList(val, prev); // if elem was not found
+    return 0; // if elem was not found
 }
 
 Elem *TopologicalSorting::createElem_(int val) {
-    return firstUnsortedElem = new Elem(val);
-}
-
-Elem *TopologicalSorting::appendToList(int val, Elem *prev) {
-    return prev->next = new Elem(val);
+    Elem *newElem = new Elem(val);
+    newElem->next = firstUnsortedElem;
+    firstUnsortedElem = newElem;
+    return newElem;
 }
 
 std::string TopologicalSorting::getSortedOrder() const {
