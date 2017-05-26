@@ -28,7 +28,7 @@ void Database::readStud_(char *studFileName) {
     if (input) {  // if file was open
         string name;
         while (getline(input, name)) {  // read all lines
-            students.insert(Student(name));
+            students.insert(StudentEntry(name));
         }
     } else {
         throw runtime_error("Could not open file with students names");
@@ -45,7 +45,7 @@ void Database::readCourses_(char *coursesFileName) {
     if (input) {
         int courseId;
         while (input >> courseId) {
-            courses.insert(Course(courseId));
+            courses.insert(CourseEntry(courseId));
         }
     } else {
         throw runtime_error("Could not open file with courses");
@@ -79,23 +79,23 @@ string Database::coursesToString() const {
  * @param studentName
  */
 void Database::add(int courseId, string studentName) {
-    Student *student = getStudent_(studentName);
-    Course *course = getCourse_(courseId);
+    StudentEntry *student = getStudent_(studentName);
+    CourseEntry *course = getCourse_(courseId);
     if (findCommonEntry_(course, student) != 0) { // if course and student are connected
         return;
     }
-    Entry *entry = new Entry(course, student);
+    ConnectionEntry *entry = new ConnectionEntry((BaseEntry *) student, (BaseEntry *) course);
     if (student->entry == 0) { // if student does not have any courses
         student->entry = entry;
     } else {
-        Entry *lastEntry = getLastStudentEntry_(student);
-        lastEntry->setNextStudentEntry(entry);
+        ConnectionEntry *lastEntry = getLastStudentEntry_(student);
+        lastEntry->left = (BaseEntry *) entry;
     }
     if (course->entry == 0) { // if course does not have any students
         course->entry = entry;
     } else {
-        Entry *lastEntry = getLastCourseEntry_(course);
-        lastEntry->setNextCourseEntry(entry);
+        ConnectionEntry *lastEntry = getLastCourseEntry_(course);
+        lastEntry->right = (BaseEntry *) entry;
     }
 }
 
@@ -105,32 +105,33 @@ void Database::add(int courseId, string studentName) {
  * @param student
  * @return 1 - if have connection; 0 - otherwise
  */
-Entry * Database::findCommonEntry_(const Course *course, const Student *student) const {
-    Entry *entry = student->entry;
+ConnectionEntry * Database::findCommonEntry_(const CourseEntry *course, const StudentEntry *student) const {
+    BaseEntry *entry = (BaseEntry *) student->entry;
     if (entry == 0) { // if student does not have any courses
         return 0;
     }
-    while (entry != 0) {
-        if (getCourse_(entry) == course) {
-            return entry;
+    while (entry->isConnectionEntry()) { // while it is not a StudentEntry again
+        // here `entry` is a ConnectionEntry
+        if (getCourse_((ConnectionEntry *) entry) == course) {
+            return (ConnectionEntry *) entry;
         }
-        entry = entry->getNextStudentEntry();
+        entry = ((ConnectionEntry *) entry)->left; // next student's entry
     }
     return 0;
 }
 
-Student *Database::getStudent_(const string studentName) const {
+StudentEntry *Database::getStudent_(const string studentName) const {
     try {
-        return students.get(Student(studentName));
+        return students.get(StudentEntry(studentName));
     }
     catch (const runtime_error &e) {
         throw runtime_error("Student " + studentName + " was not found\n");
     }
 }
 
-Course *Database::getCourse_(int courseId) const {
+CourseEntry *Database::getCourse_(int courseId) const {
     try {
-        return courses.get(Course(courseId));
+        return courses.get(CourseEntry(courseId));
     }
     catch (const runtime_error &e) {
         throw runtime_error("Course " + to_string(courseId) + " was not found\n");
@@ -143,13 +144,15 @@ Course *Database::getCourse_(int courseId) const {
  * @param student
  * @return
  */
-Entry *Database::getLastStudentEntry_(const Student *student) const {
-    Entry *lastEntry = student->entry;
-    while (lastEntry->getNextStudentEntry() != 0) {
-        lastEntry = lastEntry->getNextStudentEntry();
+ConnectionEntry *Database::getLastStudentEntry_(const StudentEntry *student) const {
+    BaseEntry *prev = 0;
+    BaseEntry *next = (BaseEntry *) student->entry;
+    while (next->isConnectionEntry()) { // while next is not a StudentEntry
+        prev = next;
+        next = ((ConnectionEntry *) next)->left;
     }
-    if (lastEntry->getNextStudent() == student) {
-        return lastEntry;
+    if (next == (BaseEntry *) student) {
+        return (ConnectionEntry *) prev;
     }
     throw runtime_error("incorrect cycle for student");
 }
@@ -160,13 +163,15 @@ Entry *Database::getLastStudentEntry_(const Student *student) const {
  * @param student
  * @return
  */
-Entry *Database::getLastCourseEntry_(const Course *course) const {
-    Entry *lastEntry = course->entry;
-    while (lastEntry->getNextCourseEntry() != 0) {
-        lastEntry = lastEntry->getNextCourseEntry();
+ConnectionEntry *Database::getLastCourseEntry_(const CourseEntry *course) const {
+    BaseEntry *prev = 0;
+    BaseEntry *next = (BaseEntry *) course->entry;
+    while (next->isConnectionEntry()) { // while next is not a CourseEntry
+        prev = next;
+        next = ((ConnectionEntry *) next)->right;
     }
-    if (lastEntry->getNextCourse() == course) {
-        return lastEntry;
+    if (next == (BaseEntry *) course) {
+        return (ConnectionEntry *) prev;
     }
     throw runtime_error("incorrect cycle for course");
 }
@@ -177,30 +182,31 @@ Entry *Database::getLastCourseEntry_(const Course *course) const {
  * @return string containing list of all courses of "Student was not found"
  */
 string Database::listCourses(string studentName) const {
-    Student *student;
+    StudentEntry *student;
     try {
         student = getStudent_(studentName);
     }
     catch (const runtime_error &e) {
         return "Student was not found";
     }
-    Entry *entry = student->entry;
-    string result = "";
-    while (entry != 0) {
-        result += to_string(getCourse_(entry)->getId()) + "\n";
-        entry = entry->getNextStudentEntry();
-    }
-    if (result == "") {
+    BaseEntry *entry = (BaseEntry *) student->entry;
+    if (!entry) {
         return "Student does not take any courses";
+    }
+    string result = "";
+    while (entry->isConnectionEntry()) {
+        result += to_string(getCourse_((ConnectionEntry *) entry)->getId()) + "\n";
+        entry = ((ConnectionEntry *) entry)->left;
     }
     return result;
 }
 
-Course *Database::getCourse_(const Entry *entry) const {
-    while (entry->getNextCourseEntry() != 0) {
-        entry = entry->getNextCourseEntry();
+CourseEntry *Database::getCourse_(const ConnectionEntry *entry) const {
+    BaseEntry *temp = entry->right;
+    while (temp->isConnectionEntry()) { // while entry is not a Course
+        temp = ((ConnectionEntry *) temp)->right;
     }
-    return entry->getNextCourse();
+    return (CourseEntry *) temp;
 }
 
 /**
@@ -209,7 +215,7 @@ Course *Database::getCourse_(const Entry *entry) const {
  * @return string containing all student names
  */
 string Database::listStudents(int courseId) const {
-    Course *course;
+    CourseEntry *course;
     try {
         course = getCourse_(courseId);
     }
@@ -224,15 +230,15 @@ string Database::listStudents(int courseId) const {
  * @param course pointer to course in hash-table
  * @return string containing all student names
  */
-string Database::listStudents_(const Course *course) const {
+string Database::listStudents_(const CourseEntry *course) const {
     string result = "";
-    Entry *entry = course->entry;
-    while (entry != 0) {
-        result += getStudent_(entry)->getName() + "\n";
-        entry = entry->getNextCourseEntry();
-    }
-    if (result == "") {
+    BaseEntry *entry = (BaseEntry *) course->entry;
+    if (!entry) {
         return "Course does not have any students";
+    }
+    while (entry->isConnectionEntry()) { // while it is not a CourseEntry
+        result += getStudent_((ConnectionEntry * ) entry)->getName() + "\n";
+        entry = ((ConnectionEntry *) entry)->right;
     }
     return result;
 }
@@ -242,13 +248,12 @@ string Database::listStudents_(const Course *course) const {
  * @param entry in loop
  * @return pointer to student
  */
-Student *Database::getStudent_(const Entry *entry) const {
-    Entry *next = entry->getNextStudentEntry();
-    while (next != 0) { // find last entry for student loop
-        entry = next;
-        next = next->getNextStudentEntry();
+StudentEntry *Database::getStudent_(const ConnectionEntry *entry) const {
+    BaseEntry *next = entry->left;
+    while (next->isConnectionEntry()) { // while it is not a StudentEntry
+        next = ((ConnectionEntry *) next)->left;
     }
-    return entry->getNextStudent();
+    return (StudentEntry *) next;
 }
 
 /**
@@ -261,9 +266,9 @@ Student *Database::getStudent_(const Entry *entry) const {
  * @param student
  */
 void Database::remove(int courseId, const char *studentName) {
-    Course *course = getCourse_(courseId);
-    Student *student = getStudent_(studentName);
-    Entry *entry = findCommonEntry_(course, student);
+    CourseEntry *course = getCourse_(courseId);
+    StudentEntry *student = getStudent_(studentName);
+    ConnectionEntry *entry = findCommonEntry_(course, student);
     excludeEntry_(entry, student);
     excludeEntry_(entry, course);
     delete entry;
@@ -274,13 +279,16 @@ void Database::remove(int courseId, const char *studentName) {
  * @param nextEntry
  * @param student
  */
-Entry * Database::findPrevEntry_(const Entry *nextEntry, const Student *student) const {
-    Entry *entry = student->entry;
-    while (entry != 0) {
-        if (entry->getNextStudentEntry() == nextEntry) {
-            return entry;
+ConnectionEntry * Database::findPrevEntry_(const ConnectionEntry *nextEntry, const StudentEntry *student) const {
+    BaseEntry *entry = (BaseEntry *) student->entry;
+    while (entry->isConnectionEntry()) { // while it is not a StudentEntry
+        BaseEntry *left = ((ConnectionEntry *) entry)->left;
+        if (left->isConnectionEntry()) {
+            if ((ConnectionEntry *) left == nextEntry) {
+                return (ConnectionEntry *) entry;
+            }
         }
-        entry = entry->getNextStudentEntry();
+        entry = ((ConnectionEntry *) entry)->left;
     }
     return 0;
 }
@@ -290,48 +298,43 @@ Entry * Database::findPrevEntry_(const Entry *nextEntry, const Student *student)
  * @param nextEntry
  * @param student
  */
-Entry * Database::findPrevEntry_(const Entry *nextEntry, const Course *course) const {
-    Entry *entry = course->entry;
-    while (entry != 0) {
-        if (entry->getNextCourseEntry() == nextEntry) {
-            return entry;
+ConnectionEntry * Database::findPrevEntry_(const ConnectionEntry *nextEntry, const CourseEntry *course) const {
+    BaseEntry *entry = (BaseEntry *) course->entry;
+    while (entry->isConnectionEntry()) { // while it is not a CourseEntry
+        BaseEntry *right = ((ConnectionEntry *) entry)->right;
+        if (right->isConnectionEntry()) {
+            if ((ConnectionEntry *) right == nextEntry) {
+                return (ConnectionEntry *) entry;
+            }
         }
-        entry = entry->getNextCourseEntry();
+        entry = ((ConnectionEntry *) entry)->right;
     }
     return 0;
 }
 
-void Database::excludeEntry_(const Entry *entry, Student *student) {
+void Database::excludeEntry_(const ConnectionEntry *entry, StudentEntry *student) {
     if (student->entry == entry) { // if it is first entry for student
-        if (entry->getNextStudentEntry() == 0) { // if it is the only entry for student
+        if (!entry->left->isConnectionEntry()) { // if it is the only entry for student (return back to student
             student->entry = 0;
         } else {
-            student->entry = entry->getNextStudentEntry();
+            student->entry = (ConnectionEntry *) entry->left;
         }
     } else {
-        Entry *prevEntry = findPrevEntry_(entry, student);
-        if (prevEntry->getNextStudentEntry() != 0) {
-            prevEntry->setNextStudentEntry(entry->getNextStudentEntry());
-        } else {
-            prevEntry->setNextStudent(entry->getNextStudent());
-        }
+        ConnectionEntry *prevEntry = findPrevEntry_(entry, student);
+        prevEntry->left = entry->left;
     }
 }
 
-void Database::excludeEntry_(const Entry *entry, Course *course) {
+void Database::excludeEntry_(const ConnectionEntry *entry, CourseEntry *course) {
     if (course->entry == entry) { // if it is first entry for course
-        if (entry->getNextCourseEntry() == 0) { // if it is the only entry for course
+        if (!entry->right->isConnectionEntry()) { // if it is the only entry for course
             course->entry = 0;
         } else {
-            course->entry = entry->getNextCourseEntry();
+            course->entry = (ConnectionEntry *) entry->right;
         }
     } else {
-        Entry *prevEntry = findPrevEntry_(entry, course);
-        if (prevEntry->getNextCourseEntry() != 0) {
-            prevEntry->setNextCourseEntry(entry->getNextCourseEntry());
-        } else {
-            prevEntry->setNextCourse(entry->getNextCourse());
-        }
+        ConnectionEntry *prevEntry = findPrevEntry_(entry, course);
+        prevEntry->right = entry->left;
     }
 }
 
@@ -340,13 +343,13 @@ void Database::excludeEntry_(const Entry *entry, Course *course) {
  * @param student
  */
 void Database::remove(const char *studentName) {
-    Student *student = getStudent_(studentName);
-    Entry *entry = student->entry;
-    while (entry != 0) { // for all entries of this student
-        Course *course = getCourse_(entry);
-        excludeEntry_(entry, course);
-        Entry *delEntry = entry;
-        entry = entry->getNextStudentEntry();
+    StudentEntry *student = getStudent_(studentName);
+    BaseEntry *entry = (BaseEntry *) student->entry;
+    while (entry->isConnectionEntry()) { // for all entries of this student
+        CourseEntry *course = getCourse_((ConnectionEntry *) entry);
+        excludeEntry_((ConnectionEntry *) entry, course);
+        BaseEntry *delEntry = entry;
+        entry = ((ConnectionEntry *) entry)->left;
         delete delEntry;
     }
     student->entry = 0;
@@ -357,13 +360,13 @@ void Database::remove(const char *studentName) {
  * @param courseId
  */
 void Database::remove(int courseId) {
-    Course *course = getCourse_(courseId);
-    Entry *entry = course->entry;
-    while (entry != 0) { // for all entries of this course
-        Student *student = getStudent_(entry);
-        excludeEntry_(entry, student);
-        Entry *delEntry = entry;
-        entry = entry->getNextCourseEntry();
+    CourseEntry *course = getCourse_(courseId);
+    BaseEntry *entry = (BaseEntry *) course->entry;
+    while (entry->isConnectionEntry()) { // for all entries of this course
+        StudentEntry *student = getStudent_((ConnectionEntry *) entry);
+        excludeEntry_((ConnectionEntry *) entry, student);
+        BaseEntry *delEntry = entry;
+        entry = ((ConnectionEntry *) entry)->right;
         delete delEntry;
     }
     course->entry = 0;

@@ -1,14 +1,12 @@
 #include <iostream>
 #include "Database.h"
 
-#define CATCH_CONFIG_MAIN
-
 #include "catch.hpp"
 
 SCENARIO("Using db") {
     GIVEN("Database with students and courses") {
-        Database db((char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/students.txt",
-                    (char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/courses.txt");
+        Database db((char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/test-data/students.txt",
+                    (char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/test-data/courses.txt");
         REQUIRE(db.studentsToString() == "Students:\n"
                 "Roman\n"
                 "Petr\n"
@@ -81,8 +79,8 @@ SCENARIO("Using db") {
 
     }
     GIVEN("Database with several entries") {
-        Database db((char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/students.txt",
-                    (char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/courses.txt");
+        Database db((char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/test-data/students.txt",
+                    (char *) "/home/lk/Dropbox/ITMO/programming/cpp-tasks/many-to-many/test-data/courses.txt");
         db.add(1, "Roman");
         db.add(11, "Roman");
         db.add(1, "Petr");
@@ -100,7 +98,7 @@ SCENARIO("Using db") {
 
         WHEN("Remove student from his first course") {
             db.remove(1, "Roman");
-            THEN("Entry is removed from student and from course") {
+            THEN("BaseEntry is removed from student and from course") {
                 REQUIRE(db.listCourses("Roman") == "11\n12\n");
                 REQUIRE(db.listStudents(1) == "Petr\nEkaterina\n");
             }
@@ -108,7 +106,7 @@ SCENARIO("Using db") {
 
         WHEN("Remove student from his second course") {
             db.remove(11, "Roman");
-            THEN("Entry is removed from student and from course") {
+            THEN("BaseEntry is removed from student and from course") {
                 REQUIRE(
                         db.listCourses("Roman") == "1\n12\n"
                 );
@@ -118,7 +116,7 @@ SCENARIO("Using db") {
 
         WHEN("Remove student from his third course") {
             db.remove(12, "Roman");
-            THEN("Entry is removed from student and from course") {
+            THEN("BaseEntry is removed from student and from course") {
                 REQUIRE(db.listCourses("Roman") == "1\n11\n");
                 REQUIRE(db.listStudents(12) == "Ekaterina\n");
             }

@@ -6,27 +6,25 @@
 #define MULTIPLETOMULTIPLE_COURSE_H
 
 #include <iostream>
-#include "Entry.h"
+#include "BaseEntry.h"
 
 using namespace std;
 
-class Course {
+class CourseEntry : BaseEntry {
 public:
-    Entry *entry = 0;
-
-    Course() {
+    CourseEntry() {
         id = -1;
     }
 
-    Course(int id_) {
+    CourseEntry(int id_) {
         id = id_;
     }
 
-    int operator==(const Course &c) const {
+    int operator==(const CourseEntry &c) const {
         return id == c.id;
     }
 
-    friend ostream &operator<<(ostream &stream, Course s) {
+    friend ostream &operator<<(ostream &stream, CourseEntry s) {
         stream << s.id;
         return stream;
     }
@@ -35,17 +33,18 @@ public:
         return id;
     }
 
+    ConnectionEntry *entry = 0;
+
 private:
     int id;
-
 };
 
 // hash code is for adding course to hash-table
 namespace std {
     template<>
-    class hash<Course> {
+    class hash<CourseEntry> {
     public:
-        size_t operator()(const Course &c) const {
+        size_t operator()(const CourseEntry &c) const {
             size_t key = 0;
             int tempId = c.getId();
             while (tempId > 0) {
