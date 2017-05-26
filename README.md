@@ -5,4 +5,5 @@ All C++ tasks use test framework [Catch](https://github.com/philsquared/Catch)
 
 1. [Priority Queue](priority-queue/)
 2. [Closed Hashing](closed-hash/)
-3. [Many-to-many datamodel](many-to-many/)
+3. [Many-to-many Datamodel](many-to-many/)
+4. [Topological Sorting](topological-sorting/)
