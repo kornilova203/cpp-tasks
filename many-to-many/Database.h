@@ -56,13 +56,13 @@ private:
 
     string listStudents_(const CourseEntry *course) const;
 
-    ConnectionEntry *findCommonEntry_(const CourseEntry *pCourse, const StudentEntry *pStudent) const;
+    BaseEntry * findEntryBeforeCommon_(const CourseEntry *pCourse, const StudentEntry *pStudent) const;
 
-    ConnectionEntry *findPrevEntry_(const ConnectionEntry *nextEntry, const StudentEntry *pStudent) const;
+    BaseEntry *findPrevEntry_(const ConnectionEntry *nextEntry, const StudentEntry *pStudent) const;
 
     ConnectionEntry *findPrevEntry_(const ConnectionEntry *nextEntry, const CourseEntry *course) const;
 
-    void excludeEntry_(const ConnectionEntry *pEntry, StudentEntry *pStudent);
+    void excludeEntry_(const BaseEntry *beforeCommonEntry, StudentEntry *pStudent);
 
     void excludeEntry_(const ConnectionEntry *entry, CourseEntry *course);
 };

@@ -81,7 +81,7 @@ string Database::coursesToString() const {
 void Database::add(int courseId, string studentName) {
     StudentEntry *student = getStudent_(studentName);
     CourseEntry *course = getCourse_(courseId);
-    if (findCommonEntry_(course, student) != 0) { // if course and student are connected
+    if (findEntryBeforeCommon_(course, student) != 0) { // if course and student are connected
         return;
     }
     ConnectionEntry *entry = new ConnectionEntry((BaseEntry *) student, (BaseEntry *) course);
@@ -100,22 +100,27 @@ void Database::add(int courseId, string studentName) {
 }
 
 /**
- * Check if student and course have connection
+ * Find common entry
  * @param course
  * @param student
- * @return 1 - if have connection; 0 - otherwise
+ * @return entry which is before common entry in list of Student
+ *      0 - if there is no common entry
  */
-ConnectionEntry * Database::findCommonEntry_(const CourseEntry *course, const StudentEntry *student) const {
-    BaseEntry *entry = (BaseEntry *) student->entry;
-    if (entry == 0) { // if student does not have any courses
+BaseEntry * Database::findEntryBeforeCommon_(const CourseEntry *course, const StudentEntry *student) const {
+    if (student->entry == 0) { // if student does not have any courses
         return 0;
     }
-    while (entry->isConnectionEntry()) { // while it is not a StudentEntry again
+
+    BaseEntry *next = (BaseEntry *) student->entry;
+    BaseEntry *prev = (BaseEntry *) student;
+
+    while (next->isConnectionEntry()) { // while it is not a StudentEntry again
         // here `entry` is a ConnectionEntry
-        if (getCourse_((ConnectionEntry *) entry) == course) {
-            return (ConnectionEntry *) entry;
+        if (getCourse_((ConnectionEntry *) next) == course) {
+            return prev;
         }
-        entry = ((ConnectionEntry *) entry)->left; // next student's entry
+        prev = next;
+        next = ((ConnectionEntry *) next)->left; // next student's entry
     }
     return 0;
 }
@@ -237,7 +242,7 @@ string Database::listStudents_(const CourseEntry *course) const {
         return "Course does not have any students";
     }
     while (entry->isConnectionEntry()) { // while it is not a CourseEntry
-        result += getStudent_((ConnectionEntry * ) entry)->getName() + "\n";
+        result += getStudent_((ConnectionEntry *) entry)->getName() + "\n";
         entry = ((ConnectionEntry *) entry)->right;
     }
     return result;
@@ -268,13 +273,20 @@ StudentEntry *Database::getStudent_(const ConnectionEntry *entry) const {
 void Database::remove(int courseId, const char *studentName) {
     CourseEntry *course = getCourse_(courseId);
     StudentEntry *student = getStudent_(studentName);
-    ConnectionEntry *entry = findCommonEntry_(course, student);
-    if (entry == 0) {
+    BaseEntry *beforeCommonEntry = findEntryBeforeCommon_(course, student);
+    if (beforeCommonEntry == 0) {
         return;
     }
-    excludeEntry_(entry, student);
-    excludeEntry_(entry, course);
-    delete entry;
+    ConnectionEntry *commonEntry;
+    if (beforeCommonEntry->isConnectionEntry()) {
+        commonEntry = (ConnectionEntry *) ((ConnectionEntry *) beforeCommonEntry)->left;
+    } else {
+        commonEntry = ((StudentEntry *) beforeCommonEntry)->entry;
+    }
+    excludeEntry_(beforeCommonEntry, student);
+
+    excludeEntry_(commonEntry, course);
+    delete commonEntry;
 }
 
 /**
@@ -282,13 +294,16 @@ void Database::remove(int courseId, const char *studentName) {
  * @param nextEntry
  * @param student
  */
-ConnectionEntry * Database::findPrevEntry_(const ConnectionEntry *nextEntry, const StudentEntry *student) const {
+BaseEntry *Database::findPrevEntry_(const ConnectionEntry *nextEntry, const StudentEntry *student) const {
     BaseEntry *entry = (BaseEntry *) student->entry;
+    if (student->entry == nextEntry) {
+        return (BaseEntry *) student;
+    }
     while (entry->isConnectionEntry()) { // while it is not a StudentEntry
         BaseEntry *left = ((ConnectionEntry *) entry)->left;
         if (left->isConnectionEntry()) {
             if ((ConnectionEntry *) left == nextEntry) {
-                return (ConnectionEntry *) entry;
+                return entry;
             }
         }
         entry = ((ConnectionEntry *) entry)->left;
@@ -301,7 +316,7 @@ ConnectionEntry * Database::findPrevEntry_(const ConnectionEntry *nextEntry, con
  * @param nextEntry
  * @param student
  */
-ConnectionEntry * Database::findPrevEntry_(const ConnectionEntry *nextEntry, const CourseEntry *course) const {
+ConnectionEntry *Database::findPrevEntry_(const ConnectionEntry *nextEntry, const CourseEntry *course) const {
     BaseEntry *entry = (BaseEntry *) course->entry;
     while (entry->isConnectionEntry()) { // while it is not a CourseEntry
         BaseEntry *right = ((ConnectionEntry *) entry)->right;
@@ -315,16 +330,18 @@ ConnectionEntry * Database::findPrevEntry_(const ConnectionEntry *nextEntry, con
     return 0;
 }
 
-void Database::excludeEntry_(const ConnectionEntry *entry, StudentEntry *student) {
-    if (student->entry == entry) { // if it is first entry for student
-        if (!entry->left->isConnectionEntry()) { // if it is the only entry for student (return back to student
+void Database::excludeEntry_(const BaseEntry *beforeCommonEntry, StudentEntry *student) {
+    if (beforeCommonEntry == (BaseEntry *) student) { // if it is first entry for student
+        ConnectionEntry * commonEntry = ((StudentEntry *) beforeCommonEntry)->entry;
+        if (!commonEntry->left->isConnectionEntry()) { // if it is the only beforeCommonEntry for student (return back to student
             student->entry = 0;
         } else {
-            student->entry = (ConnectionEntry *) entry->left;
+            student->entry = (ConnectionEntry *) commonEntry->left;
         }
     } else {
-        ConnectionEntry *prevEntry = findPrevEntry_(entry, student);
-        prevEntry->left = entry->left;
+        ConnectionEntry *commonEntry = (ConnectionEntry *) ((ConnectionEntry *) beforeCommonEntry)->left;
+//        ConnectionEntry *prevEntry = findPrevEntry_(beforeCommonEntry, student);
+        ((ConnectionEntry *) beforeCommonEntry)->left = commonEntry->left;
     }
 }
 
@@ -364,10 +381,14 @@ void Database::remove(const char *studentName) {
  */
 void Database::remove(int courseId) {
     CourseEntry *course = getCourse_(courseId);
+    if (!course->entry) { // if there is no students in this course
+        return;
+    }
     BaseEntry *entry = (BaseEntry *) course->entry;
     while (entry->isConnectionEntry()) { // for all entries of this course
         StudentEntry *student = getStudent_((ConnectionEntry *) entry);
-        excludeEntry_((ConnectionEntry *) entry, student);
+        BaseEntry *prevCommonEntry = findPrevEntry_((ConnectionEntry *) entry, student);
+        excludeEntry_(prevCommonEntry, student);
         BaseEntry *delEntry = entry;
         entry = ((ConnectionEntry *) entry)->right;
         delete delEntry;
