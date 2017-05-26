@@ -134,6 +134,14 @@ SCENARIO("Using db") {
             }
         }
 
+        WHEN("Remove course which is not a student's course") {
+            db.remove(12, "Petr");
+            THEN("Nothing changed") {
+                REQUIRE(db.listStudents(12) == "Roman\nEkaterina\n");
+                REQUIRE(db.listCourses("Petr") == "1\n11\n");
+            }
+        }
+
         WHEN("Remove student from list") {
             db.remove("Roman");
             THEN("Student is removed from all courses") {
@@ -153,5 +161,6 @@ SCENARIO("Using db") {
                 REQUIRE(db.listCourses("Ekaterina") == "12\n1\n");
             }
         }
+
     }
 }

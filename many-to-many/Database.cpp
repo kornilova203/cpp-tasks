@@ -269,6 +269,9 @@ void Database::remove(int courseId, const char *studentName) {
     CourseEntry *course = getCourse_(courseId);
     StudentEntry *student = getStudent_(studentName);
     ConnectionEntry *entry = findCommonEntry_(course, student);
+    if (entry == 0) {
+        return;
+    }
     excludeEntry_(entry, student);
     excludeEntry_(entry, course);
     delete entry;
