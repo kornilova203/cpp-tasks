@@ -34,7 +34,7 @@ public:
 
     Set &assign(Set const &);
 
-    Set &find(Set &, int);
+    Set * find(Set &, int);
 
     int maxVal() const;
 
@@ -48,7 +48,7 @@ public:
 
     void makeNull();
 
-    void print() const;
+    string toString() const;
 
 private:
     void makeArrNull_(unsigned *, int);
@@ -163,28 +163,40 @@ int Set::isEmpty() const {
     return 1;
 }
 
-// print set
-// make mask (1000000... ) and in cycle shift it >> 1
-void Set::print() const {
+/**
+ * @return string representation of set
+ */
+string Set::toString() const {
     if (isEmpty()) {
-        cout << "empty set" << endl;
-        return;
+        return "[]";
     }
 
+    stringstream ss;
+    ss << "[";
+
+    int isFirst = 1;
     unsigned mask = Set::mask;  // 100000...
     for (int i = 0; i < arrSize - 1; i++) {  // for all elements in array (except last)
         for (int j = 0; j < bitsInInt; j++) {
-            if (arr[i] & (mask >> j))
-                cout << i * bitsInInt + j + 1 << " ";
+            if (arr[i] & (mask >> j)) {
+                if (!isFirst) {
+                    ss << ", ";
+                }
+                ss << i * bitsInInt + j + 1;
+                isFirst = 0;
+            }
         }
     }
     int i = arrSize - 1;  // for last element in array
     for (int j = 0; j < bitsInInt; j++) {
         int num = i * bitsInInt + j + 1;
-        if (num <= size && arr[i] & (mask >> j))  // check if num < size
-            cout << num << " ";
+        if (num <= size && arr[i] & (mask >> j)) { // check if num < size
+            ss << ", ";
+            ss << num;
+        }
     }
-    cout << endl;
+    ss << "]";
+    return ss.str();
 }
 
 // ! this function does not make all elements = 0
@@ -281,13 +293,20 @@ int Set::isDisjoint(Set const &a) const {
     return isDisjoint_(*this, a);
 }
 
-// A and B are disjoint. Result is a set where x was found
-Set &Set::find(Set &a, int x) {
+/**
+ * Find in which set element is found.
+ * First set is 'this'
+ * Sets must be disjoint
+ * @param a second set
+ * @param x wanted element
+ * @return pointer to set where element was found (0 if not found)
+ */
+Set * Set::find(Set &a, int x) {
     if (x > 0 && x < size && find_(arr, x))
-        return *this;
+        return this;
     if (x > 0 && x < a.size && find_(a.arr, x))
-        return a;
-    return a;
+        return &a;
+    return 0;
 }
 
 // if value is in array
@@ -321,8 +340,8 @@ Set &Set::assign(Set const &a) {
  */
 int Set::maxVal() const {
     unsigned mask = Set::mask;  // 10000...
-    int initShift = size - (arrSize - 1) * bitsInInt;
-    for (int shift = initShift; shift > 0; shift--) {  // for last elem in array
+    int initShift = size - (arrSize - 1) * bitsInInt - 1;
+    for (int shift = initShift; shift >= 0; shift--) {  // for last elem in array
         if ((arr[arrSize - 1] & mask >> shift) != 0)
             return (arrSize - 1) * bitsInInt + shift + 1;
     }
@@ -344,7 +363,7 @@ int Set::minVal() const {
     for (int i = 0; i < arrSize - 1; i++) {  // for all array elements except last one
         for (int shift = 0; shift < bitsInInt - 1; shift++) {  // for other elems in array
             if ((arr[i] & mask >> shift) != 0)
-                return i * bitsInInt + shift;
+                return i * bitsInInt + shift + 1;
         }
     }
     int lastShift = size - (arrSize - 1) * bitsInInt;
@@ -411,7 +430,7 @@ int Set::member(int x) const {
  * check if two sets have intersection from 0 to min(size-of-first-set, size-of-second-set)
  * @return 1 if two sets are disjoint, otherwise 0
  */
-int Set::isDisjoint_(Set const & a, Set const & b) const {
+int Set::isDisjoint_(Set const &a, Set const &b) const {
     int minArraySize = min(a.arrSize, b.arrSize);
     for (int i = 0; i < minArraySize; i++) { // all meaningless bits (which are bigger than size) are equal to 0
         if (a.arr[i] & b.arr[i] != 0) { // if two sets have any common elements
