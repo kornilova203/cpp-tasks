@@ -130,9 +130,10 @@ Set &Set::insert(int x) {
 
 // insert elem to array
 void Set::insert_(unsigned int *array, int x) {
+    x--;
     unsigned mask = Set::mask; // 100000...
     int arrIndex = x / bitsInInt;  // count which element of array is responsible for this number
-    int shift = x % bitsInInt - 1;
+    int shift = x % bitsInInt;
     mask = mask >> shift;  // 00010000.....
     array[arrIndex] = array[arrIndex] | mask;  // insert number to set
 }
@@ -148,9 +149,10 @@ Set &Set::del(int x) {
 // delete element from array
 // x must be in range
 void Set::del_(unsigned int *array, int x) {
+    x--;
     unsigned mask = Set::mask; // 100000...
     int arrIndex = x / bitsInInt;  // count which element of array is responsible for this number
-    int shift = x % bitsInInt - 1;
+    int shift = x % bitsInInt;
     mask = mask >> shift;  // 00010000.....
     mask = ~mask;  // 11101111.... for & operation
     array[arrIndex] = array[arrIndex] & mask;  // delete number from set
@@ -302,21 +304,23 @@ int Set::isDisjoint(Set const &a) const {
  * @return pointer to set where element was found (0 if not found)
  */
 Set * Set::find(Set &a, int x) {
-    if (x > 0 && x < size && find_(arr, x))
+    if (x > 0 && x <= size && find_(arr, x))
         return this;
-    if (x > 0 && x < a.size && find_(a.arr, x))
+    if (x > 0 && x <= a.size && find_(a.arr, x))
         return &a;
     return 0;
 }
 
 // if value is in array
 int Set::find_(unsigned int *array, int x) const {
+    x--;
     unsigned mask = Set::mask;  // 10000...
     int arrIndex = x / bitsInInt;  // count which element of array is responsible for this number
-    int shift = x % bitsInInt - 1;
+    int shift = x % bitsInInt;
     mask = mask >> shift;  // 00010000.....
-    if (array[arrIndex] & mask != 0)  // if this number exist
+    if ((array[arrIndex] & mask) != 0) { // if this number exist
         return 1;
+    }
     return 0;
 }
 
