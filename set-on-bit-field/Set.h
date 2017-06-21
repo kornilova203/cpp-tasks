@@ -283,7 +283,7 @@ unsigned int *Set::difference_(Set const &a, Set const &b) {
     return newArr;
 }
 
-//
+
 Set &Set::merge(Set const &a, Set const &b) {
     changeSize(max(a.size, b.size));  // delete existing data and make new size array
     arr = setUnion_(a, b);
@@ -350,7 +350,7 @@ int Set::maxVal() const {
             return (arrSize - 1) * bitsInInt + shift + 1;
     }
     for (int i = arrSize - 2; i >= 0; i--) {
-        for (int shift = bitsInInt; shift > 0; shift--) {  // for other elems in array
+        for (int shift = bitsInInt - 1; shift >= 0; shift--) {  // for other elems in array
             if ((arr[i] & mask >> shift) != 0)
                 return i * bitsInInt + shift + 1;
         }
