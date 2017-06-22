@@ -1,16 +1,16 @@
 #include "catch.hpp"
 
-#include "Set.h"
+#include "Set_bits.h"
 
-SCENARIO("Using TopologicalSorting") {
+SCENARIO("Testing set on bit field") {
     GIVEN("Empty set") {
-        Set set(6);
+        Set_bits set(6);
         REQUIRE(set.minVal() == 0);
         REQUIRE(set.maxVal() == 0);
         REQUIRE(set.toString() == "[]");
     }
     GIVEN("One non-empty set") {
-        Set set(100);
+        Set_bits set(100);
         set.insert(2);
         set.insert(4);
         set.insert(6);
@@ -26,23 +26,23 @@ SCENARIO("Using TopologicalSorting") {
             set.del(6);
             set.del(22);
             set.del(100);
-            THEN("Set is empty") {
+            THEN("Set_bits is empty") {
                 REQUIRE(set.minVal() == 0);
                 REQUIRE(set.maxVal() == 0);
                 REQUIRE(set.toString() == "[]");
             }
         }
     }
-    GIVEN("Set with max and min elem") {
-        Set set(95);
+    GIVEN("Set_bits with max and min elem") {
+        Set_bits set(95);
         set.insert(1);
         set.insert(95);
         REQUIRE(set.minVal() == 1);
         REQUIRE(set.maxVal() == 95);
         REQUIRE(set.toString() == "[1, 95]");
     }
-    GIVEN("Set with elements which are equal to powers of 2") {
-        Set set(35);
+    GIVEN("Set_bits with elements which are equal to powers of 2") {
+        Set_bits set(35);
         set.insert(1);
         set.insert(2);
         set.insert(7);
@@ -60,9 +60,9 @@ SCENARIO("Using TopologicalSorting") {
         REQUIRE(set.member(8) == 1);
     }
     GIVEN("Two empty sets") {
-        Set a(10);
-        Set b(5);
-        Set c;
+        Set_bits a(10);
+        Set_bits b(5);
+        Set_bits c;
         REQUIRE(c.setUnion(a, b).toString() == "[]");
         REQUIRE(c.intersection(a, b).toString() == "[]");
         REQUIRE(c.difference(a, b).toString() == "[]");
@@ -71,15 +71,15 @@ SCENARIO("Using TopologicalSorting") {
         REQUIRE(a.equal(b) == 1);
     }
     GIVEN("Two non-empty disjoint sets") {
-        Set a(100);
-        Set b(200);
+        Set_bits a(100);
+        Set_bits b(200);
         a.insert(1);
         a.insert(5);
         a.insert(99);
         b.insert(2);
         b.insert(6);
         b.insert(100);
-        Set c;
+        Set_bits c;
         REQUIRE(c.setUnion(a, b).toString() == "[1, 2, 5, 6, 99, 100]");
         REQUIRE(c.intersection(a, b).toString() == "[]");
         REQUIRE(c.difference(a, b).toString() == "[1, 5, 99]");
@@ -91,8 +91,8 @@ SCENARIO("Using TopologicalSorting") {
         REQUIRE(a.equal(b) == 0);
     }
     GIVEN("Two non-disjoint sets") {
-        Set a(100);
-        Set b(200);
+        Set_bits a(100);
+        Set_bits b(200);
         a.insert(1);
         a.insert(5);
         a.insert(99);
@@ -102,7 +102,7 @@ SCENARIO("Using TopologicalSorting") {
         b.insert(1);
         b.insert(5);
         b.insert(8);
-        Set c;
+        Set_bits c;
         REQUIRE(c.setUnion(a, b).toString() == "[1, 2, 5, 6, 8, 99, 100]");
         REQUIRE(c.intersection(a, b).toString() == "[1, 5]");
         REQUIRE(c.difference(a, b).toString() == "[99]");

@@ -10,41 +10,41 @@ using namespace std;
 /**
  * Set which is implemented using bit field data structure
  */
-class Set {
+class Set_bits {
 public:
-    Set(int size = 1);
+    Set_bits(int size = 1);
 
-    ~Set() {
+    ~Set_bits() {
         if (arr) {
             delete[] arr;
         }
     }
 
-    Set &insert(int);
+    Set_bits &insert(int);
 
-    Set &del(int);
+    Set_bits &del(int);
 
-    Set &setUnion(Set const &, Set const &);
+    Set_bits &setUnion(Set_bits const &, Set_bits const &);
 
-    Set &intersection(Set const &, Set const &);
+    Set_bits &intersection(Set_bits const &, Set_bits const &);
 
-    Set &difference(Set const &, Set const &);
+    Set_bits &difference(Set_bits const &, Set_bits const &);
 
-    Set &merge(Set const &, Set const &);
+    Set_bits &merge(Set_bits const &, Set_bits const &);
 
-    Set &assign(Set const &);
+    Set_bits &assign(Set_bits const &);
 
-    Set * find(Set &, int);
+    Set_bits * find(Set_bits &, int);
 
     int maxVal() const;
 
     int minVal() const;
 
-    int equal(Set const &) const;
+    int equal(Set_bits const &) const;
 
     int member(int) const;
 
-    int isDisjoint(Set const &a) const;
+    int isDisjoint(Set_bits const &a) const;
 
     void makeNull();
 
@@ -53,19 +53,19 @@ public:
 private:
     void makeArrNull_(unsigned *, int);
 
-    unsigned int *setUnion_(Set const &, Set const &);
+    unsigned int *setUnion_(Set_bits const &, Set_bits const &);
 
-    unsigned int *intersection_(Set const &, Set const &);
+    unsigned int *intersection_(Set_bits const &, Set_bits const &);
 
-    unsigned int *difference_(Set const &, Set const &);
+    unsigned int *difference_(Set_bits const &, Set_bits const &);
 
-    int isDisjoint_(Set const &, Set const &) const;
+    int isDisjoint_(Set_bits const &, Set_bits const &) const;
 
     void del_(unsigned int *, int);
 
     void insert_(unsigned int *, int);
 
-    void copyTail_(unsigned int *to, Set const &from, int start);
+    void copyTail_(unsigned int *to, Set_bits const &from, int start);
 
     int find_(unsigned int *, int) const;
 
@@ -89,9 +89,9 @@ private:
 
 // parameters:
 //		size - maximum value in array (minimum is always 1)
-Set::Set(int sz) {
+Set_bits::Set_bits(int sz) {
     if (sz < 1) {
-        cout << "size must be > 1. Set will be created with default size = 1" << endl;
+        cout << "size must be > 1. Set_bits will be created with default size = 1" << endl;
         sz = 1;
     }
     size = sz;
@@ -101,18 +101,18 @@ Set::Set(int sz) {
 }
 
 // assign zero to all elements of array
-void Set::makeNull() {
+void Set_bits::makeNull() {
     makeArrNull_(arr, arrSize);
 }
 
 // make all elements equal to 0
-void Set::makeArrNull_(unsigned *array, int sz) {
+void Set_bits::makeArrNull_(unsigned *array, int sz) {
     for (int i = 0; i < sz; i++)
         array[i] = 0;
 }
 
 // check if there is any elements in set
-int Set::isArrayEmpty_(unsigned *array, int sz) const {
+int Set_bits::isArrayEmpty_(unsigned *array, int sz) const {
     for (int i = 0; i < sz; i++) {  // for all elements
         if (array[i] != 0)
             return 0;
@@ -121,7 +121,7 @@ int Set::isArrayEmpty_(unsigned *array, int sz) const {
 }
 
 // insert element to set
-Set &Set::insert(int x) {
+Set_bits &Set_bits::insert(int x) {
     if (x > 0 && x <= size) {  // if x in array range
         insert_(arr, x);
     }
@@ -129,9 +129,9 @@ Set &Set::insert(int x) {
 }
 
 // insert elem to array
-void Set::insert_(unsigned int *array, int x) {
+void Set_bits::insert_(unsigned int *array, int x) {
     x--;
-    unsigned mask = Set::mask; // 100000...
+    unsigned mask = Set_bits::mask; // 100000...
     int arrIndex = x / bitsInInt;  // count which element of array is responsible for this number
     int shift = x % bitsInInt;
     mask = mask >> shift;  // 00010000.....
@@ -139,7 +139,7 @@ void Set::insert_(unsigned int *array, int x) {
 }
 
 // delete element from set
-Set &Set::del(int x) {
+Set_bits &Set_bits::del(int x) {
     if (x > 0 && x <= size) {  // if x in array range
         del_(arr, x);
     }
@@ -148,9 +148,9 @@ Set &Set::del(int x) {
 
 // delete element from array
 // x must be in range
-void Set::del_(unsigned int *array, int x) {
+void Set_bits::del_(unsigned int *array, int x) {
     x--;
-    unsigned mask = Set::mask; // 100000...
+    unsigned mask = Set_bits::mask; // 100000...
     int arrIndex = x / bitsInInt;  // count which element of array is responsible for this number
     int shift = x % bitsInInt;
     mask = mask >> shift;  // 00010000.....
@@ -158,7 +158,7 @@ void Set::del_(unsigned int *array, int x) {
     array[arrIndex] = array[arrIndex] & mask;  // delete number from set
 }
 
-int Set::isEmpty() const {
+int Set_bits::isEmpty() const {
     for (int i = 0; i < arrSize; i++)  // find if array is empty
         if (arr[i] != 0)
             return 0;
@@ -168,7 +168,7 @@ int Set::isEmpty() const {
 /**
  * @return string representation of set
  */
-string Set::toString() const {
+string Set_bits::toString() const {
     if (isEmpty()) {
         return "[]";
     }
@@ -177,7 +177,7 @@ string Set::toString() const {
     ss << "[";
 
     int isFirst = 1;
-    unsigned mask = Set::mask;  // 100000...
+    unsigned mask = Set_bits::mask;  // 100000...
     for (int i = 0; i < arrSize - 1; i++) {  // for all elements in array (except last)
         for (int j = 0; j < bitsInInt; j++) {
             if (arr[i] & (mask >> j)) {
@@ -202,7 +202,7 @@ string Set::toString() const {
 }
 
 // ! this function does not make all elements = 0
-void Set::changeSize(int newSize) {
+void Set_bits::changeSize(int newSize) {
     delete[] arr;  // delete existing array
     arr = 0;
     size = newSize;
@@ -211,13 +211,13 @@ void Set::changeSize(int newSize) {
 
 // union of two sets
 // assign result to *this
-Set &Set::setUnion(Set const &a, Set const &b) {
+Set_bits &Set_bits::setUnion(Set_bits const &a, Set_bits const &b) {
     changeSize(max(a.size, b.size));  // delete existing data and make new size array
     arr = setUnion_(a, b);
     return *this;
 }
 
-unsigned int *Set::setUnion_(Set const &a, Set const &b) {
+unsigned int *Set_bits::setUnion_(Set_bits const &a, Set_bits const &b) {
     int newArrSize = max(a.arrSize, b.arrSize);
     unsigned int *newArr = new unsigned int[newArrSize];
 
@@ -233,7 +233,7 @@ unsigned int *Set::setUnion_(Set const &a, Set const &b) {
     return newArr;
 }
 
-void Set::copyTail_(unsigned int *to, Set const &from, int start) {
+void Set_bits::copyTail_(unsigned int *to, Set_bits const &from, int start) {
     for (int i = start; i < from.arrSize; i++) {  // for last arr-elements in bigger set
         to[i] = from.arr[i];
     }
@@ -241,7 +241,7 @@ void Set::copyTail_(unsigned int *to, Set const &from, int start) {
 
 // union of two sets
 // assign result to *this
-Set &Set::intersection(Set const &a, Set const &b) {
+Set_bits &Set_bits::intersection(Set_bits const &a, Set_bits const &b) {
     changeSize(max(a.size, b.size));  // delete existing data in *this and make new size array
     arr = intersection_(a, b);
     return *this;
@@ -249,7 +249,7 @@ Set &Set::intersection(Set const &a, Set const &b) {
 
 // union of two sets
 // create new array
-unsigned int *Set::intersection_(Set const &a, Set const &b) {
+unsigned int *Set_bits::intersection_(Set_bits const &a, Set_bits const &b) {
     int newArrSize = max(a.arrSize, b.arrSize);
     unsigned int *newArr = new unsigned int[newArrSize];
     makeArrNull_(newArr, newArrSize);  // not all elements of array will get new values, so makeNull is necessary
@@ -262,13 +262,13 @@ unsigned int *Set::intersection_(Set const &a, Set const &b) {
 }
 
 
-Set &Set::difference(Set const &a, Set const &b) {
+Set_bits &Set_bits::difference(Set_bits const &a, Set_bits const &b) {
     changeSize(max(a.size, b.size));  // delete existing data and make new size array
     arr = difference_(a, b);
     return *this;
 }
 
-unsigned int *Set::difference_(Set const &a, Set const &b) {
+unsigned int *Set_bits::difference_(Set_bits const &a, Set_bits const &b) {
     int newArrSize = max(a.arrSize, b.arrSize);
     unsigned int *newArr = new unsigned int[newArrSize];
     makeArrNull_(newArr, newArrSize);  // not all elements of array will get new values, so makeNull is necessary
@@ -284,14 +284,14 @@ unsigned int *Set::difference_(Set const &a, Set const &b) {
 }
 
 
-Set &Set::merge(Set const &a, Set const &b) {
+Set_bits &Set_bits::merge(Set_bits const &a, Set_bits const &b) {
     changeSize(max(a.size, b.size));  // delete existing data and make new size array
     arr = setUnion_(a, b);
     return *this;
 }
 
 
-int Set::isDisjoint(Set const &a) const {
+int Set_bits::isDisjoint(Set_bits const &a) const {
     return isDisjoint_(*this, a);
 }
 
@@ -303,7 +303,7 @@ int Set::isDisjoint(Set const &a) const {
  * @param x wanted element
  * @return pointer to set where element was found (0 if not found)
  */
-Set * Set::find(Set &a, int x) {
+Set_bits * Set_bits::find(Set_bits &a, int x) {
     if (x > 0 && x <= size && find_(arr, x))
         return this;
     if (x > 0 && x <= a.size && find_(a.arr, x))
@@ -312,9 +312,9 @@ Set * Set::find(Set &a, int x) {
 }
 
 // if value is in array
-int Set::find_(unsigned int *array, int x) const {
+int Set_bits::find_(unsigned int *array, int x) const {
     x--;
-    unsigned mask = Set::mask;  // 10000...
+    unsigned mask = Set_bits::mask;  // 10000...
     int arrIndex = x / bitsInInt;  // count which element of array is responsible for this number
     int shift = x % bitsInInt;
     mask = mask >> shift;  // 00010000.....
@@ -325,7 +325,7 @@ int Set::find_(unsigned int *array, int x) const {
 }
 
 // assign one set to another
-Set &Set::assign(Set const &a) {
+Set_bits &Set_bits::assign(Set_bits const &a) {
     if (arrSize != a.arrSize) {  // if array sizes are different
         arrSize = a.arrSize;  // copy info about size
         delete[] arr;  // delete previous arr
@@ -342,8 +342,8 @@ Set &Set::assign(Set const &a) {
  * Get max value in set
  * @return max value in set. 0 if set is empty
  */
-int Set::maxVal() const {
-    unsigned mask = Set::mask;  // 10000...
+int Set_bits::maxVal() const {
+    unsigned mask = Set_bits::mask;  // 10000...
     int initShift = size - (arrSize - 1) * bitsInInt - 1;
     for (int shift = initShift; shift >= 0; shift--) {  // for last elem in array
         if ((arr[arrSize - 1] & mask >> shift) != 0)
@@ -362,8 +362,8 @@ int Set::maxVal() const {
  * Get minimal value in set
  * @return minimal value in set. 0 if set is empty
  */
-int Set::minVal() const {
-    unsigned mask = Set::mask;  // 10000...
+int Set_bits::minVal() const {
+    unsigned mask = Set_bits::mask;  // 10000...
     for (int i = 0; i < arrSize - 1; i++) {  // for all array elements except last one
         for (int shift = 0; shift < bitsInInt - 1; shift++) {  // for other elems in array
             if ((arr[i] & mask >> shift) != 0)
@@ -384,7 +384,7 @@ int Set::minVal() const {
 // find minimum arrSize and size
 // check everything between 0 and minArrSize
 // check that there is no elements after minArraySize in bigger set
-int Set::equal(Set const &a) const {
+int Set_bits::equal(Set_bits const &a) const {
     int minArrSize = min(arrSize, a.arrSize);
     if (ifArraysEqual(arr, a.arr, 0, minArrSize) == 0)  // if first part is not equal
         return 0;
@@ -404,7 +404,7 @@ int Set::equal(Set const &a) const {
     return 1;
 }
 
-int Set::ifArraysEqual(unsigned *arr1, unsigned *arr2, int from, int to) const {
+int Set_bits::ifArraysEqual(unsigned *arr1, unsigned *arr2, int from, int to) const {
     for (int i = from; i < to; i++) {
         if (arr1[i] != arr2[i])
             return 0;
@@ -413,7 +413,7 @@ int Set::ifArraysEqual(unsigned *arr1, unsigned *arr2, int from, int to) const {
 }
 
 // check if there is any numbers in array in particular range
-int Set::ifArrayHasValue(unsigned *array, int from, int to) const {
+int Set_bits::ifArrayHasValue(unsigned *array, int from, int to) const {
     for (int i = from; i < to; i++) {
         if (array[i] != 0)
             return 0;
@@ -422,7 +422,7 @@ int Set::ifArrayHasValue(unsigned *array, int from, int to) const {
 }
 
 // if x in set
-int Set::member(int x) const {
+int Set_bits::member(int x) const {
     if (x <= 0 || x > size)
         return 0;
     return find_(arr, x);
@@ -434,7 +434,7 @@ int Set::member(int x) const {
  * check if two sets have intersection from 0 to min(size-of-first-set, size-of-second-set)
  * @return 1 if two sets are disjoint, otherwise 0
  */
-int Set::isDisjoint_(Set const &a, Set const &b) const {
+int Set_bits::isDisjoint_(Set_bits const &a, Set_bits const &b) const {
     int minArraySize = min(a.arrSize, b.arrSize);
     for (int i = 0; i < minArraySize; i++) { // all meaningless bits (which are bigger than size) are equal to 0
         if (a.arr[i] & b.arr[i] != 0) { // if two sets have any common elements
