@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(set_on_bit_field)
+project(set)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -11,5 +11,5 @@ set(SOURCE_FILES
         tests-main.cpp
         linked-ordered-list/Set_ol.h
         linked-unordered-list/Elem.h)
-add_executable(set_on_bit_field ${SOURCE_FILES})
+add_executable(set ${SOURCE_FILES})
 INCLUDE_DIRECTORIES(../lib)
