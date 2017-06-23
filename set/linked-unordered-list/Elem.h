@@ -1,5 +1,5 @@
-#ifndef SET_ON_BIT_FIELD_ELEM_H
-#define SET_ON_BIT_FIELD_ELEM_H
+#ifndef CPP_TASKS_ELEM_H
+#define CPP_TASKS_ELEM_H
 
 class Elem {
 public:
@@ -11,5 +11,4 @@ public:
     Elem *next;
 };
 
-
-#endif //SET_ON_BIT_FIELD_ELEM_H
+#endif //CPP_TASKS_ELEM_H
